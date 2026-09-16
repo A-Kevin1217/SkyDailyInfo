@@ -153,6 +153,50 @@ def extract_tasks(task_data):
     # 否则使用 rawAnswer
     return task_data.get('rawAnswer', '')
 
+def format_task_guide(task_data, task_details):
+    """今日旅行指南 + 任务详细攻略合并成一段：每条任务下面直接跟它的攻略和图。"""
+    task_list = (task_data or {}).get('taskList') or []
+    if not task_list:
+        return extract_tasks(task_data or {})
+
+    pending = {}
+    for detail in task_details or []:
+        pending.setdefault(str(detail.get('keyword') or '').strip(), []).append(detail)
+
+    blocks = []
+    for task in task_list:
+        number = task.get('number')
+        name = str(task.get('task') or '').strip()
+        block = [f"**{number}. {name}**", ""]
+
+        detail = pending.pop(name, None)
+        if detail:
+            detail = detail[0]
+            text = str(detail.get('text') or '').strip()
+            if text:
+                block.append(text)
+                block.append("")
+            for index, img_url in enumerate(detail.get('images') or [], 1):
+                block.append(f"![{name}-{index}]({img_url})")
+            if detail.get('images'):
+                block.append("")
+
+        blocks.append('\n'.join(block).strip())
+
+    # 没对上任务名的攻略，附在最后，别丢
+    for name, items in pending.items():
+        for detail in items:
+            block = [f"**{detail.get('title') or name}**", ""]
+            text = str(detail.get('text') or '').strip()
+            if text:
+                block.append(text)
+                block.append("")
+            for index, img_url in enumerate(detail.get('images') or [], 1):
+                block.append(f"![{name}-{index}]({img_url})")
+            blocks.append('\n'.join(block).strip())
+
+    return '\n\n'.join(blocks)
+
 def format_events(events):
     """格式化活动列表"""
     if not events:
@@ -264,17 +308,14 @@ def update_readme(task_data, events_data, weather_data, task_details=None, calen
     date_str = now.strftime('%Y年%m月%d日')
     time_str = now.strftime('%H:%M:%S')
     
-    # 提取任务内容
-    tasks = extract_tasks(task_data)
+    # 提取任务内容（旅行指南 + 详细攻略已合并）
+    tasks = format_task_guide(task_data, task_details)
     
     # 格式化活动
     events = format_events(events_data)
     
     # 格式化天气 (返回文字和图片)
     weather_text, weather_images = format_weather(weather_data)
-    
-    # 格式化任务详情
-    details = format_task_details(task_details) if task_details else ""
     
     # 格式化日历
     calendar = format_calendar(calendar_data) if calendar_data else ""
@@ -303,25 +344,15 @@ def update_readme(task_data, events_data, weather_data, task_details=None, calen
 
 """
     
-    # 生成任务详情部分
-    details_section = ""
-    if details:
-        details_section = f"""
-### 📖 任务详细攻略
-
-{details}
-"""
-    
     new_section = f"""## 📅 {date_str} 每日任务
 
 > 最后更新: {date_str} {time_str} (北京时间)
 
 ### 🎯 今日旅行指南
 
-```
 {tasks}
-```
-{weather_section}{calendar_section}{details_section}
+
+{weather_section}{calendar_section}
 ### 🎪 今日活动
 
 {events}
