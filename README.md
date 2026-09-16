@@ -1,6 +1,6 @@
 # 🌤 光遇每日任务
 
-[![更新光遇每日任务](https://github.com/oivio-up/SkyDailyInfo/actions/workflows/update-daily.yml/badge.svg)](https://github.com/oivio-up/SkyDailyInfo/actions/workflows/update-daily.yml)
+[![更新光遇每日任务](https://github.com/A-Kevin1217/SkyDailyInfo/actions/workflows/update-daily.yml/badge.svg)](https://github.com/A-Kevin1217/SkyDailyInfo/actions/workflows/update-daily.yml)
 
 自动获取并展示《光·遇》每日任务和活动信息。
 
