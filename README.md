@@ -21,7 +21,7 @@
 <!-- DAILY_TASK_START -->
 ## 📅 2026年09月16日 每日任务
 
-> 最后更新: 2026年09月16日 22:06:56 (北京时间)
+> 最后更新: 2026年09月16日 22:23:49 (北京时间)
 
 ### 🎯 今日旅行指南
 
@@ -41,7 +41,7 @@
 
 ### 📅 本月日历
 
-![光遇日历](https://ok.166.net/gameyw-gbox/bot/205/20260904/ecd676324ed50fca8407c3d2770db19e31a96ac7.jpg)
+![光遇日历](https://api.kevcore.cn/skydaily/1179fe6a8dd5df34.jpg)
 
 
 ### 📖 任务详细攻略
@@ -57,7 +57,7 @@
 ---
 
 
-#### 📍 水母 恢复
+#### 📍 水母 能量
 
 【每日任务－在水母上恢复能量】
 位置：密林遗迹(水母图)
@@ -65,8 +65,8 @@
 注意：几乎消耗完能量后再跳上水母会更容易完成任务哦
 
 
-![在水母上恢复能量-1](https://ok.166.net/gameyw-gbox/bot/205/20211110/973e483f3a28f7d3f9b909abcec21529964dace9.png)
-![在水母上恢复能量-2](https://ok.166.net/gameyw-gbox/bot/205/20211110/a4221cf497a4dfd6006b94d4b801087a8fc51009.png)
+![在水母上恢复能量-1](https://api.kevcore.cn/skydaily/8e8e85f1d4248f17.png)
+![在水母上恢复能量-2](https://api.kevcore.cn/skydaily/54beda26b2886921.png)
 
 ---
 
