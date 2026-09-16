@@ -6,13 +6,13 @@
 
 ## 💡 项目说明
 
-本项目通过 **Cloudflare Worker** 中转 API 请求，使用 **GitHub Actions** 每日自动更新，将光遇的每日任务和活动信息展示在 README 中。
+本项目通过自建 **SkyTools 控制台** 获取数据，使用 **GitHub Actions** 每日自动更新，将光遇的每日任务和活动信息展示在 README 中。
 
 ### 特性
 
 - ✨ 每日自动更新任务和活动信息
-- 🔒 敏感数据（UID、Token）安全存储在 Cloudflare
-- 🚀 通过 Cloudflare Worker 中转 API，保护隐私
+- 🔒 账号与 Session 全部留在自建服务器，不外传
+- 🚀 走 SkyTools `daily-tasks` 接口（游戏 `/account/get_season_quests`），无需第三方中转
 - 📱 清晰的任务和活动展示
 - ⏰ 北京时间每天 8:00 自动更新
 
