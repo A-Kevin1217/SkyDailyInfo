@@ -28,7 +28,7 @@ jobs:
 
       - name: 安装依赖
         run: |
-          pip install requests
+          pip install requests pillow
 
       - name: 获取每日数据
         id: fetch_data
@@ -42,6 +42,6 @@ jobs:
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add README.md
+          git add -A
           git diff --quiet && git diff --staged --quiet || git commit -m "🌤 更新光遇每日任务 - $(TZ='Asia/Shanghai' date +'%Y-%m-%d %H:%M:%S')"
           git push
