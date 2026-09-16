@@ -4,6 +4,8 @@
 从 Cloudflare Worker 获取数据并更新 README.md
 """
 
+import hashlib
+import io
 import os
 import sys
 import requests
@@ -13,6 +15,98 @@ from datetime import datetime, timezone, timedelta
 # 从环境变量获取配置
 WORKER_URL = os.environ.get('WORKER_URL')
 API_SECRET = os.environ.get('API_SECRET')
+
+# 图片落盘目录（仓库内相对路径，GitHub 直出，不走 camo 代理）
+IMAGES_DIR = 'images'
+IMAGE_MAX_WIDTH = 1200
+UA = 'SkyDailyInfo/1.0 (+https://github.com/A-Kevin1217/SkyDailyInfo)'
+
+def localize_image(url):
+    """把外链图片落到仓库内，返回相对路径。
+
+    GitHub 渲染 README 时会把外链图片改写成 camo.githubusercontent.com 代理，
+    国内访问经常超时/504，表现为图片加载不出来。仓库内相对路径由 GitHub 直出，
+    稳定得多（本机实测 0.9s 内可加载）。
+    """
+    if not isinstance(url, str) or not url.startswith('http'):
+        return url
+
+    digest = hashlib.sha1(url.encode('utf-8')).hexdigest()[:16]
+    if os.path.isdir(IMAGES_DIR):
+        cached = [f for f in os.listdir(IMAGES_DIR) if f.startswith(digest + '.')]
+        if cached:
+            return f"{IMAGES_DIR}/{cached[0]}"
+
+    try:
+        resp = requests.get(url, timeout=60, headers={'User-Agent': UA})
+        resp.raise_for_status()
+        data = resp.content
+    except requests.exceptions.RequestException as e:
+        print(f"⚠️ 图片本地化失败，沿用原链接: {url} ({e})")
+        return url
+
+    ext = '.jpg' if re.search(r'\.jpe?g(\?|$)', url, re.IGNORECASE) else '.png'
+
+    # 有 Pillow 就顺手压一下体积，没有就存原图
+    try:
+        from PIL import Image
+
+        with Image.open(io.BytesIO(data)) as im:
+            im.load()
+            if im.width > IMAGE_MAX_WIDTH:
+                ratio = IMAGE_MAX_WIDTH / float(im.width)
+                im = im.resize((IMAGE_MAX_WIDTH, max(1, int(im.height * ratio))), Image.LANCZOS)
+            if im.mode in ('RGBA', 'LA', 'P'):
+                rgba = im.convert('RGBA')
+                if rgba.getchannel('A').getextrema() == (255, 255):
+                    im = rgba.convert('RGB')
+                    ext = '.jpg'
+            buf = io.BytesIO()
+            if ext == '.jpg':
+                im.convert('RGB').save(buf, format='JPEG', quality=85, optimize=True)
+            else:
+                im.save(buf, format='PNG', optimize=True)
+            data = buf.getvalue()
+    except Exception as e:
+        print(f"ℹ️ 跳过压缩（{type(e).__name__}），使用原图")
+
+    name = digest + ext
+    os.makedirs(IMAGES_DIR, exist_ok=True)
+    with open(os.path.join(IMAGES_DIR, name), 'wb') as f:
+        f.write(data)
+    print(f"   🖼 {name} ({len(data) // 1024}KB)")
+    return f"{IMAGES_DIR}/{name}"
+
+def localize_payload(data):
+    """把 payload 里所有图片地址换成仓库内相对路径。"""
+    if not isinstance(data, dict):
+        return data
+
+    for detail in data.get('taskDetails') or []:
+        detail['images'] = [localize_image(u) for u in (detail.get('images') or [])]
+
+    calendar = data.get('calendar') or {}
+    if calendar.get('images'):
+        calendar['images'] = [localize_image(u) for u in calendar['images']]
+
+    weather = data.get('weather')
+    if isinstance(weather, dict) and weather.get('images'):
+        weather['images'] = [localize_image(u) for u in weather['images']]
+
+    return data
+
+def prune_images(content):
+    """清掉仓库里已不再引用的图片，避免仓库无限膨胀。"""
+    if not os.path.isdir(IMAGES_DIR):
+        return
+    for name in os.listdir(IMAGES_DIR):
+        if not name.startswith('_') and f"{IMAGES_DIR}/{name}" in content:
+            continue
+        try:
+            os.remove(os.path.join(IMAGES_DIR, name))
+            print(f"   🧹 清理未引用图片 {name}")
+        except OSError:
+            pass
 
 def fetch_daily_data():
     """从 Cloudflare Worker 获取每日数据"""
@@ -266,11 +360,13 @@ def update_readme(task_data, events_data, weather_data, task_details=None, calen
     if calendar_data:
         print(f"   📅 包含本月日历")
 
+    prune_images(new_content)
+
 def main():
     print("🌤 开始更新光遇每日任务...")
     
     # 获取数据
-    data = fetch_daily_data()
+    data = localize_payload(fetch_daily_data())
     print("✅ 成功获取数据")
     
     # 更新 README
