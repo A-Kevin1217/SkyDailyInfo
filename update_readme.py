@@ -15,36 +15,50 @@ WORKER_URL = os.environ.get('WORKER_URL')
 API_SECRET = os.environ.get('API_SECRET')
 
 def fetch_daily_data():
-    """从 Cloudflare Worker 获取每日数据"""
-    if not WORKER_URL or not API_SECRET:
-        print("错误: 未设置 WORKER_URL 或 API_SECRET 环境变量")
+    """从 SkyTools 控制台获取每日数据（适配为原 Worker 返回结构）"""
+    if not WORKER_URL:
+        print("错误: 未设置 WORKER_URL 环境变量")
         sys.exit(1)
-    
-    headers = {
-        'Authorization': f'Bearer {API_SECRET}',
-        'Content-Type': 'application/json'
-    }
-    
+
     try:
-        print(f"正在请求 Worker: {WORKER_URL}")
-        response = requests.get(WORKER_URL, headers=headers, timeout=30)
+        print(f"正在请求 SkyTools 控制台: {WORKER_URL}")
+        response = requests.post(
+            WORKER_URL,
+            json={"action": "daily-tasks"},
+            timeout=90,
+        )
         response.raise_for_status()
-        data = response.json()
-        
-        if not data.get('success'):
-            print(f"Worker 返回错误: {data.get('error', '未知错误')}")
-            sys.exit(1)
-        
-        # 显示缓存状态
-        if data.get('cached'):
-            print(f"✅ 使用缓存数据 (缓存时间: {data.get('cacheTime', 'N/A')})")
-        else:
-            print(f"🔄 从网易 API 获取新数据")
-        
-        return data['data']
+        payload = response.json()
     except requests.exceptions.RequestException as e:
         print(f"请求失败: {e}")
         sys.exit(1)
+
+    if not payload.get("ok"):
+        print(f"控制台返回错误: {payload.get('error', '未知错误')}")
+        sys.exit(1)
+
+    result = payload.get("result") or {}
+    tasks = result.get("tasks") or []
+    if not tasks:
+        print("控制台未返回任务")
+        sys.exit(1)
+
+    print(f"OK 账号 {payload.get('account')} 返回 {len(tasks)} 条任务")
+
+    task_list = [
+        {"number": index + 1, "task": str(item.get("name") or "").strip()}
+        for index, item in enumerate(tasks)
+        if str(item.get("name") or "").strip()
+    ]
+
+    return {
+        "task": {"taskList": task_list},
+        "taskDetails": None,
+        "events": [],
+        "weather": None,
+        "calendar": None,
+    }
+
 
 def extract_tasks(task_data):
     """提取任务列表（使用 Worker 已处理好的数据）"""
