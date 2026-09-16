@@ -21,7 +21,7 @@
 <!-- DAILY_TASK_START -->
 ## 📅 2026年09月16日 每日任务
 
-> 最后更新: 2026年09月16日 22:27:05 (北京时间)
+> 最后更新: 2026年09月16日 22:40:56 (北京时间)
 
 ### 🎯 今日旅行指南
 
@@ -41,7 +41,7 @@
 
 ### 📅 本月日历
 
-![光遇日历](https://api.kevcore.cn/skydaily/1179fe6a8dd5df34.jpg)
+![光遇日历](images/7b880cc6cea52475.jpg)
 
 
 ### 📖 任务详细攻略
@@ -65,8 +65,8 @@
 注意：几乎消耗完能量后再跳上水母会更容易完成任务哦
 
 
-![在水母上恢复能量-1](https://api.kevcore.cn/skydaily/8e8e85f1d4248f17.jpg)
-![在水母上恢复能量-2](https://api.kevcore.cn/skydaily/54beda26b2886921.jpg)
+![在水母上恢复能量-1](images/f4c306736bacd379.jpg)
+![在水母上恢复能量-2](images/f01e7a3b5bcfd478.jpg)
 
 ---
 
