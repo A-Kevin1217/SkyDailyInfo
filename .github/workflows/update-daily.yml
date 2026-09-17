@@ -1,10 +1,9 @@
 name: 更新光遇每日任务
 
 on:
-  schedule:
-    # 每天北京时间 8:00 执行 (UTC 0:00)
-    - cron: '0 0 * * *'
-  workflow_dispatch: # 允许手动触发
+  # 日常更新已改由服务器 cron 直接提交（不依赖 Actions 排队），
+  # 这里保留手动触发，作为服务端异常时的补救手段。
+  workflow_dispatch:
 
 # 显式声明写权限：否则默认 GITHUB_TOKEN 只有 read，
 # 最后一步 git push 会被拒绝（403）。
