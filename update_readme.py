@@ -53,20 +53,26 @@ def localize_image(url):
 
         with Image.open(io.BytesIO(data)) as im:
             im.load()
+            changed = False
             if im.width > IMAGE_MAX_WIDTH:
                 ratio = IMAGE_MAX_WIDTH / float(im.width)
                 im = im.resize((IMAGE_MAX_WIDTH, max(1, int(im.height * ratio))), Image.LANCZOS)
+                changed = True
             if im.mode in ('RGBA', 'LA', 'P'):
                 rgba = im.convert('RGBA')
                 if rgba.getchannel('A').getextrema() == (255, 255):
                     im = rgba.convert('RGB')
                     ext = '.jpg'
+                    changed = True
             buf = io.BytesIO()
             if ext == '.jpg':
                 im.convert('RGB').save(buf, format='JPEG', quality=85, optimize=True)
             else:
                 im.save(buf, format='PNG', optimize=True)
-            data = buf.getvalue()
+            encoded = buf.getvalue()
+            # 只有确实做了缩放/转格式才用重编码结果，否则一律留原图：
+            # bridge 那边已经压过一遍，这样「有 Pillow / 没 Pillow」产出的文件完全一致
+            data = encoded if changed else data
     except Exception as e:
         print(f"ℹ️ 跳过压缩（{type(e).__name__}），使用原图")
 
